@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>medexaudit Report</title>
+    <style>
+        :root {
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #212529;
+            --muted: #6c757d;
+            --border: #dee2e6;
+            --pass: #28a745;
+            --fail: #dc3545;
+            --accent: #4C78A8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.3rem; margin: 2rem 0 1rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.3rem; }
+        h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+        .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem;
+            text-align: center;
+        }
+        .card .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .card .value { font-size: 2rem; font-weight: 700; margin-top: 0.3rem; }
+        .card .value.pass { color: var(--pass); }
+        .card .value.fail { color: var(--fail); }
+        .chart-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1.5rem; }
+        th, td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--bg); font-weight: 600; position: sticky; top: 0; }
+        tr:hover td { background: #f1f3f5; }
+        .match-high { color: var(--pass); font-weight: 600; }
+        .match-partial { color: #e67700; font-weight: 600; }
+        .match-none { color: var(--fail); font-weight: 600; }
+        .deductions { font-size: 0.8rem; color: var(--muted); }
+        .model-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    <h1>medexaudit Report</h1>
+    <p class="meta">Generated {{ generated_at }} &mdash; {{ reports | length }} audit(s)</p>
+
+    {% if reports %}
+    <h2>Summary</h2>
+    <div class="cards">
+        {% for r in reports %}
+        <div class="card">
+            <div class="label">{{ r.candidate_model }}</div>
+            <div class="value {% if r.final_metrics.verdict == 'Pass' %}pass{% else %}fail{% endif %}">
+                {{ "%.1f" | format(r.final_metrics.global_accuracy_score) }}%
+            </div>
+            <div class="label">{{ r.final_metrics.verdict }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="cards">
+        {% for r in reports %}
+        <div class="card">
+            <div class="label">{{ r.candidate_model }} &mdash; Ref Facts</div>
+            <div class="value">{{ r.final_metrics.reference_fact_count }}</div>
+        </div>
+        <div class="card">
+            <div class="label">{{ r.candidate_model }} &mdash; Hallucinations</div>
+            <div class="value {% if r.final_metrics.hallucination_count > 0 %}fail{% endif %}">
+                {{ r.final_metrics.hallucination_count }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2>Model Comparison</h2>
+    <div class="chart-container">
+        {{ accuracy_chart | safe }}
+    </div>
+    <div class="chart-container">
+        {{ error_chart | safe }}
+    </div>
+
+    <h2>Detailed Results</h2>
+    {% for r in reports %}
+    <div class="model-section">
+        <h3>{{ r.candidate_model }}</h3>
+        <p class="meta">Judge: {{ r.judge_model }} &mdash; {{ r.timestamp }}</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ref ID</th>
+                    <th>Candidate ID</th>
+                    <th>Match</th>
+                    <th>Score</th>
+                    <th>Deductions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ar in r.audit_results %}
+                <tr>
+                    <td>{{ ar.ref_id }}</td>
+                    <td>{{ ar.candidate_id or "—" }}</td>
+                    <td class="match-{{ ar.match_quality | lower }}">{{ ar.match_quality }}</td>
+                    <td>{{ "%.0f" | format(ar.fact_score) }}</td>
+                    <td class="deductions">
+                        {% for d in ar.deductions %}
+                        <div>{{ d.field }}: {{ d.points }}pts — {{ d.reason }}</div>
+                        {% endfor %}
+                        {% if not ar.deductions %}&mdash;{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>No audit data to display.</p>
+    {% endif %}
+</body>
+</html>

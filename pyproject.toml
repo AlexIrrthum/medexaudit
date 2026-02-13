@@ -1,0 +1,21 @@
+[project]
+name = "medexaudit"
+version = "0.1.0"
+description = "Benchmark LLMs on clinical fact extraction from medical conversations"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.15",
+    "litellm>=1.50",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "jinja2>=3.1",
+    "plotly>=6.0",
+]
+
+[project.scripts]
+medexaudit = "medexaudit.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

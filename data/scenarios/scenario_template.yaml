@@ -1,0 +1,16 @@
+context: |
+  Décrivez le scénario clinique ici.
+
+complexity:
+  small_talk: Minimal
+  patient_confusion: Minimal
+  temporal_complexity: Minimal
+  clinical_complexity: Minimal
+  lay_terms: Minimal
+  third_party_interference: Minimal
+  resistance: Minimal
+  semantic_ambiguity: Minimal
+  initial_incoherence: Minimal
+  named_entities: Minimal
+  clinical_nonsense: Minimal
+  total_nonsense: Minimal
