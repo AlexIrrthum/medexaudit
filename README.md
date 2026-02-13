@@ -36,8 +36,8 @@ Scenarios use a structured YAML format with a clinical context and complexity pa
 
 ```yaml
 context: |
-  Une adolescente de 14 ans, sportive visite un médecin du sport
-  pour une douleur au tibia et une douleur à hanche.
+  Une adolescente de 14 ans, sportive, visite un médecin du sport
+  pour une douleur au tibia et à la hanche gauches.
 
 complexity:
   small_talk: Medium
