@@ -35,7 +35,7 @@ uv run medexaudit simulate --scenario data/scenarios/my_scenario.yaml
 Scenarios use a structured YAML format with a clinical context and complexity parameters:
 
 ```yaml
-context: |
+context:
   Une adolescente de 14 ans, sportive, visite un médecin du sport
   pour une douleur au tibia et à la hanche gauches.
 
